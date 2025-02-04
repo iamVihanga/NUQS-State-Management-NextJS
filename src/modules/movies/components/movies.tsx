@@ -1,19 +1,43 @@
 "use client";
 
 import React, { useTransition } from "react";
+import { useQueryState, parseAsInteger } from "nuqs";
 
 import { MovieSelectType } from "@/db/schema";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import MovieCard from "./movie-card";
 
 type Props = {
   movies?: MovieSelectType[];
 };
 
 export function Movies({ movies }: Props) {
-  // const [isLoading, startTransition] = useTransition();
-  let isLoading = true;
+  const [isLoading, startTransition] = useTransition();
+
+  // Query States with Nuqs
+  const [page, setPage] = useQueryState(
+    "page",
+    parseAsInteger
+      .withDefault(1)
+      .withOptions({ shallow: true, startTransition })
+  );
+
+  const [search, setSearch] = useQueryState("search", {
+    defaultValue: "",
+    shallow: false,
+    startTransition,
+  });
+
+  // Functions
+  const handleNextPage = () => setPage(page + 1);
+  const handlePreviousPage = () => setPage(page - 1);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    // setPage(1);
+  };
 
   return (
     <main className="w-full">
@@ -22,22 +46,19 @@ export function Movies({ movies }: Props) {
           <Input
             type="text"
             placeholder="Search movies..."
-            // value={search}
-            // onChange={handleSearchChange}
+            value={search}
+            onChange={handleSearchChange}
             className="w-1/4"
           />
 
           <div className="flex items-center gap-3">
             <Button
-            // onClick={handlePreviousPage}
-            // disabled={page === 1 || isLoading}
+              onClick={handlePreviousPage}
+              disabled={page === 1 || isLoading}
             >
               Previous
             </Button>
-            <Button
-              // onClick={handleNextPage}
-              disabled={isLoading}
-            >
+            <Button onClick={handleNextPage} disabled={isLoading}>
               Next
             </Button>
           </div>
@@ -63,7 +84,11 @@ export function Movies({ movies }: Props) {
           role="list"
           className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 sm:gap-x-6 md:grid-cols-3 lg:grid-cols-4 xl:gap-x-8"
         >
-          some text
+          {movies?.map((movie) => (
+            <li key={movie.id.toString()} className="relative">
+              <MovieCard movie={movie} />
+            </li>
+          ))}
         </ul>
       )}
     </main>

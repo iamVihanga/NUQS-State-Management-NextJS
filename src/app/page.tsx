@@ -7,6 +7,9 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default async function Home(props: { searchParams: SearchParams }) {
   const searchParams = await props.searchParams;
   const query = querySchema.parse(searchParams);
+
+  console.log({ searchParams, query });
+
   const { data: movies, error: moviesError } = await getMovies(query);
 
   return (
